@@ -1,0 +1,7 @@
+# ignore binaries
+bin/
+
+# ignore data files
+*.acsm
+*.pdf
+*.epub
