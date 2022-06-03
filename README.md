@@ -24,14 +24,14 @@ This container compiles the reference implementation utilities for libgourou and
 
 ### Automated download and de-drm
 
-The container will default to sequentially running first the `acsmdownloader` followed by the `adept_remove` utility application to process the *.acsm file referenced in $1
+By default, the container will process an inputted *.acsm file ($1) through both `acsmdownloader` (to retreive the PDF/ePub file) and `adept_remove` (to remove ADEPT DRM from the downloaded book). 
 
 ```bash
 > docker run \
     -v {$PATH_TO_ADOBE_CREDS}:/home/libgourou/.adept \
     -v $(pwd)/bin:/home/libgourou/files \
     -it \
-    --rm docker-libgourou \
+    --rm bcliang/docker-libgourou \
     [name_of_adept_metafile.acsm]
 ```
 
@@ -43,7 +43,7 @@ To manually run libgourou utils, change the docker entrypoint
     -v {$PATH_TO_ADOBE_CREDS}:/home/libgourou/.adept \
     -v $(pwd)/bin:/home/libgourou/files \
     -it --entrypoint /bin/bash \
-    --rm docker-libgourou
+    --rm bcliang/docker-libgourou
 ```
 
 
