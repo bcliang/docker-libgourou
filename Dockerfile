@@ -8,20 +8,14 @@ RUN apt-get update && \
   bash \
   git \
   wget \
-  curl \
-  tzdata \
   libzip-dev \
   libssl-dev \
-  libcrypto++-dev \
   libcurl4-gnutls-dev \
-  # libqt5core5a \
-  # libqt5network5 \
   && apt-get autoclean \
   && rm -rf /var/lib/apt/lists/*
 
 # RUN apt-get install -y valgrind
 
-# RUN cp -r usr/include/x86_64-linux-gnu/curl usr/include/curl \
 RUN cd /usr/src \
   && git clone git://soutade.fr/libgourou.git \
   && cd libgourou \
@@ -34,11 +28,12 @@ RUN cd /usr/src \
   && rm -r /usr/src/libgourou \
   && ldconfig
 
-# RUN apt-get remove -y git build-essential 
+RUN apt-get remove -y git build-essential \
+  && apt-get clean
+
+
 COPY scripts /home/libgourou
 
 WORKDIR /home/libgourou
-
-#CMD for file in *.acsm; do knock "$(pwd)"/$file; done
 
 ENTRYPOINT ["/bin/bash", "/home/libgourou/entrypoint.sh"]
