@@ -88,7 +88,7 @@ To return a loaned book :
 adept_loan_mgt -r <id>
 ```
 
-#### bash script
+### Bash Script
 
 A "de-DRM" bash script is provided (`./scripts/dedrm.sh`) to simplify running and using the docker-libgourou image.
 
@@ -116,7 +116,7 @@ To launch an interactive terminal with access to the libgourou utils:
 !!!    acsmdownloader -f "./files/{ACSM_FILE}" -o output.drm
 !!!    adept_remove -v -f output.drm -o "/home/libgourou/files/{OUTPUT_FILE}"
 !!!
-root@..:/home/libgourou# 
+username@..:/home/libgourou# 
 ```
 
 To generate a DRM-removed PDF/ePub file (this simply replicates the command at the top of this section):
