@@ -50,9 +50,14 @@ To manually run libgourou utils, run the container interactively and overide the
 > docker run \
     -v {$PATH_TO_ADOBE_CREDS}:/home/libgourou/.adept \
     -v $(pwd):/home/libgourou/files \
+    -v /etc/passwd:/etc/passwd:ro \
+    -v /etc/group:/etc/group:ro \
+    -u $(id -u ${USER}):$(id -g ${USER})
     -it --entrypoint /bin/bash \
     bcliang/docker-libgourou
 ```
+
+#### Commands
 
 Use the bash shell to run the libgourou utility scripts. See the `libgourou` [README](https://indefero.soutade.fr/p/libgourou/source/tree/master/README.md) for additional notes.
 
@@ -81,4 +86,45 @@ adept_loan_mgt [-l]
 To return a loaned book :
 ```
 adept_loan_mgt -r <id>
+```
+
+### Bash Script
+
+A "de-DRM" bash script is provided (`./scripts/dedrm.sh`) to simplify running and using the docker-libgourou image.
+
+```bash
+> chmod +x scripts/dedrm.sh
+> cp scripts/dedrm.sh ~/.local/bin/dedrm
+```
+
+To launch an interactive terminal with access to the libgourou utils:
+```bash
+> dedrm
+!!!
+!!!    WARNING: no ADEPT keys detected (argument $2, or "$(pwd)/.adept").
+!!!    Launching interactive terminal for credentials creation (device activation). Run this:
+!!!
+!!!    adept_activate -r --username {USERNAME} --password {PASSWORD} --output-dir files/.adept
+!!!
+!!!     (*) use --anonymous in place of --username, --password if you do not have an ADE account.
+!!!     (*) credentials will be saved in your current path in the folder "$(pwd)/.adept"
+!!!
+!!!
+!!!    WARNING: no ACSM file detected (argument $1).
+!!!    Launching interactive terminal for manual loan management. Example commands below:
+!!!
+!!!    acsmdownloader -f "./files/{ACSM_FILE}" -o output.drm
+!!!    adept_remove -v -f output.drm -o "/home/libgourou/files/{OUTPUT_FILE}"
+!!!
+username@..:/home/libgourou# 
+```
+
+To generate a DRM-removed PDF/ePub file (this simply replicates the command at the top of this section):
+```bash
+> dedrm {ACSM_FILE}
+```
+
+To generate a DRM-free PDF/ePub file using credentials in a specific directory:
+```bash
+> dedrm {ACSM_FILE} {CREDENTIALS_PATH}
 ```
