@@ -38,9 +38,6 @@ then
     docker run \
         -v "$(pwd)":/home/libgourou/files \
         -v "$(pwd)/$KEY_PATH":/home/libgourou/.adept \
-        -v /etc/passwd:/etc/passwd:ro \
-        -v /etc/group:/etc/group:ro \
-        -u $(id -u ${USER}):$(id -g ${USER}) \
         -it --entrypoint /bin/bash \
         --rm bcliang/docker-libgourou 
 else

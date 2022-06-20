@@ -50,9 +50,6 @@ To manually run libgourou utils, run the container interactively and overide the
 > docker run \
     -v {$PATH_TO_ADOBE_CREDS}:/home/libgourou/.adept \
     -v $(pwd):/home/libgourou/files \
-    -v /etc/passwd:/etc/passwd:ro \
-    -v /etc/group:/etc/group:ro \
-    -u $(id -u ${USER}):$(id -g ${USER})
     -it --entrypoint /bin/bash \
     bcliang/docker-libgourou
 ```
