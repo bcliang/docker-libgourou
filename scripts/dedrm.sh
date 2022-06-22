@@ -39,12 +39,12 @@ then
         -v "$(pwd)":/home/libgourou/files \
         -v "$(pwd)/$KEY_PATH":/home/libgourou/.adept \
         -it --entrypoint /bin/bash \
-        --rm bcliang/docker-libgourou 
+        --rm bcliang/docker-libgourou
 else
     echo "> acsmdownloader -f \"/home/libgourou/files/$ACSM_FILE\" -o \"output.drm\""
     echo "> adept_remove -v -f \"output.drm\" -o \"/home/libgourou/files/{OUTPUT_FILE}\""
     docker run \
-        -v "$(pwd)":/home/libgourou/files \ 
+        -v "$(pwd)":/home/libgourou/files \
         -v "$(pwd)/$KEY_PATH":/home/libgourou/.adept \
         --rm bcliang/docker-libgourou \
         $ACSM_FILE
