@@ -1,11 +1,10 @@
 name: Build and Publish to DockerHub
 on:
-  push:
-  # release:
-  #   types: [published]
+  release:
+    types: [published]
     
 jobs:
-  build-api:
+  publish:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/releases/')
     steps:
