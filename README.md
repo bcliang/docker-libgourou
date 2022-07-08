@@ -25,6 +25,12 @@ This container compiles the reference implementation utilities for libgourou (ma
 > docker build . -t bcliang/docker-libgourou
 ```
 
+### DockerHub
+
+```
+> docker pull bcliang/docker-libgourou:latest
+```
+
 ## Usage
 
 ### Automated download and de-drm

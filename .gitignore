@@ -1,5 +1,8 @@
 # ignore binaries
 bin/
+adobe/
+Adobe-Digital-Editions/
+.adept/
 
 # ignore data files
 *.acsm
