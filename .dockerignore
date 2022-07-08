@@ -1,0 +1,7 @@
+#by default ignore everything
+*
+
+#include the following
+!scripts
+!LICENSE
+!README.md
