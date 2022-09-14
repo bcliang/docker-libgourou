@@ -3,7 +3,8 @@
 ACSM_FILE=$1
 KEY_PATH=$2
 
-# docker requires absolute paths for volumes. Check $KEY_PATH and attempt to convert relative paths
+# Docker container needs a well-defined path for mounting volumes (paths should start with /* or ./*). 
+# Check $KEY_PATH and attempt to convert relative paths when necessary
 if [[ ! -z "$KEY_PATH" ]] && [[ -d "$KEY_PATH" ]]
 then
     # user specified a path AND bash found the directory
@@ -27,7 +28,7 @@ else
     then
         if [[ -d "$(pwd)/.adept" ]]
         then
-            # check the default path
+            # check the script's "default" path
             KEY_PATH="$(pwd)/.adept"
         else
             echo "!!!"
