@@ -3,15 +3,32 @@
 ACSM_FILE=$1
 KEY_PATH=$2
 
-if [[ -z "$KEY_PATH" ]] || [[ ! -d "$KEY_PATH" ]]
+# Docker container needs a well-defined path for mounting volumes (paths should start with /* or ./*). 
+# Check $KEY_PATH and attempt to convert relative paths when necessary
+if [[ ! -z "$KEY_PATH" ]] && [[ -d "$KEY_PATH" ]]
 then
-    if [[ -d "$(pwd)/$KEY_PATH" ]]
+    # user specified a path AND bash found the directory
+    case $KEY_PATH in
+        /*)
+            # absolute path, do nothing
+            ;;
+        ~*)
+            # home directory, convert to absolute path
+            HOME_DIR="$(getent passwd $USER | awk -F ':' '{print $6}')"
+            KEY_PATH="$HOME_DIR/${KEY_PATH:1}"
+            ;;
+        *)
+            # relative path, convert
+            KEY_PATH="$(pwd)/$KEY_PATH"
+            ;;
+    esac
+else
+    # user didn't specify a path
+    if [[ -z "$KEY_PATH" ]]
     then
-        KEY_PATH="$(pwd)/$KEY_PATH"
-    else
-
         if [[ -d "$(pwd)/.adept" ]]
         then
+            # check the script's "default" path
             KEY_PATH="$(pwd)/.adept"
         else
             echo "!!!"
@@ -27,6 +44,7 @@ then
     fi
 fi
 
+# *.acsm file not specified, or specified file doesn't exist
 if [[ -z "$ACSM_FILE" ]] || [[ ! -f "$ACSM_FILE" ]]
 then
     echo "!!!"
@@ -38,21 +56,36 @@ then
     echo "!!!"
 fi
 
-if [[ -z "$KEY_PATH" ]] || [[ -z "$ACSM_FILE" ]] || [[ ! -f "$ACSM_FILE" ]]
+if [[ -z "$KEY_PATH" ]]
 then
-    echo "Note: the current path ($(pwd)) will be mounted at /home/libgourou/files"
+    # ADEPT keys missing; can't run libgourou utils
+    echo -e "\nMounted Volumes"
+    echo -e "   $(pwd) --> /home/libgourou/files/\n"
     docker run \
         -v "$(pwd)":/home/libgourou/files \
-        -v "$(pwd)/$KEY_PATH":/home/libgourou/.adept \
         -it --entrypoint /bin/bash \
         --rm bcliang/docker-libgourou
 else
-    echo "> acsmdownloader -f \"/home/libgourou/files/$ACSM_FILE\" -o \"output.drm\""
-    echo "> adept_remove -v -f \"output.drm\" -o \"/home/libgourou/files/{OUTPUT_FILE}\""
-    docker run \
-        -v "$(pwd)":/home/libgourou/files \
-        -v "$KEY_PATH":/home/libgourou/.adept \
-        --rm bcliang/docker-libgourou \
-        $ACSM_FILE
+    if [[ -z "$ACSM_FILE" ]] || [[ ! -f "$ACSM_FILE" ]]
+    then
+        # ADEPT keys were found but no *.acsm file
+        echo -e "\nMounted Volumes"
+        echo -e "   $(pwd) --> /home/libgourou/files/"
+        echo -e "   $KEY_PATH --> mounted at /home/libgourou/.adept/\n"
+        docker run \
+            -v "$(pwd)":/home/libgourou/files \
+            -v "$KEY_PATH":/home/libgourou/.adept \
+            -it --entrypoint /bin/bash \
+            --rm bcliang/docker-libgourou
+    else
+        # both ADEPT keys and *.acsm file were found
+        echo "> acsmdownloader -f \"/home/libgourou/files/$ACSM_FILE\" -o \"output.drm\""
+        echo "> adept_remove -v -f \"output.drm\" -o \"/home/libgourou/files/{OUTPUT_FILE}\""
+        docker run \
+            -v "$(pwd)":/home/libgourou/files \
+            -v "$KEY_PATH":/home/libgourou/.adept \
+            --rm bcliang/docker-libgourou \
+            $ACSM_FILE
+    fi
 fi
 

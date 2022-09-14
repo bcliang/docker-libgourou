@@ -27,7 +27,7 @@ This container compiles the reference implementation utilities for libgourou (ma
 
 ### DockerHub
 
-```
+```bash
 > docker pull bcliang/docker-libgourou:latest
 ```
 
@@ -45,9 +45,9 @@ By default, the container will process an inputted *.acsm file ($1) through both
     [name_of_adept_metafile.acsm]
 ```
 
-Notes: The shell script assumes that activated device configuration files (via Adobe ID credentials) have been mounted in the home directory (e.g. in `/home/libgourou`, `/home/libgourou/.adept/`, or `/home/libgourou/adobe-digital-editions/`). 
-
-To generate ADEPT configuration files (`activation.xml`, `devicesalt`, `device.xml`), use the interactive terminal and run `adept_activate`
+Notes: 
+1. The shell script assumes that activated device configuration files (via Adobe ID credentials) have been mounted in the home directory (e.g. in `/home/libgourou`, `/home/libgourou/.adept/`, or `/home/libgourou/adobe-digital-editions/`). 
+2. To generate ADEPT configuration files (`activation.xml`, `devicesalt`, `device.xml`), use the interactive terminal and run the `adept_activate` utility
 
 ### Interactive Terminal
 
@@ -119,6 +119,10 @@ To launch an interactive terminal with access to the libgourou utils:
 !!!    acsmdownloader -f "./files/{ACSM_FILE}" -o output.drm
 !!!    adept_remove -v -f output.drm -o "/home/libgourou/files/{OUTPUT_FILE}"
 !!!
+
+Mounted Volumes
+   (current path e.g. $pwd) --> /home/libgourou/files/
+
 username@..:/home/libgourou# 
 ```
 

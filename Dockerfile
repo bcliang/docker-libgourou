@@ -1,4 +1,3 @@
-# FROM python:3.10-slim-bullseye
 FROM ubuntu:jammy
 
 RUN apt-get update && \
