@@ -46,12 +46,12 @@ By default, the container will process an inputted *.acsm file ($1) through both
 ```
 
 Notes: 
-1. The shell script assumes that activated device configuration files (via Adobe ID credentials) have been mounted in the home directory (e.g. in `/home/libgourou`, `/home/libgourou/.adept/`, or `/home/libgourou/adobe-digital-editions/`). 
-2. To generate ADEPT configuration files (`activation.xml`, `devicesalt`, `device.xml`), use the interactive terminal and run the `adept_activate` utility
+1. The shell script assumes that activated device configuration files (via Adobe ID credentials) have been mounted into `/home/libgourou` (alternates: `/home/libgourou/.adept/`, `/home/libgourou/adobe-digital-editions/`, etc.). 
+2. To generate ADEPT configuration files (`activation.xml`, `devicesalt`, `device.xml`), use the interactive terminal and run the `adept_activate` utility.
 
 ### Interactive Terminal
 
-To manually run libgourou utils, run the container interactively and overide the docker entrypoint :
+To manually run libgourou utils, run the container interactively and overide the docker entrypoint:
 ```bash
 > docker run \
     -v {$PATH_TO_ADOBE_CREDS}:/home/libgourou/.adept \
@@ -62,17 +62,17 @@ To manually run libgourou utils, run the container interactively and overide the
 
 #### Commands
 
-Use the bash shell to run the libgourou utility scripts. See the `libgourou` [README](https://indefero.soutade.fr/p/libgourou/source/tree/master/README.md) for additional notes.
+Use the bash shell to run the libgourou utility scripts. See the `libgourou` [README](https://indefero.soutade.fr/p/libgourou/source/tree/master/README.md) and/or the included manpages for additional usage.
 
 To activate a new device with a AdobeID :
 ```
 adept_activate -u <AdobeID USERNAME> [--output-dir output_directory]
 ```
-By default, configuration files will be saved in `/home/libgourou/.adept`. Save contents to a mounted volume for reuse at a later date.
+By default, configuration files will be saved in `/home/libgourou/.adept`. Users should save contents to a mounted volume for reuse at a later date.
 
 To download an ePub/PDF :
 ```
-acsmdownloader -f <ACSM_FILE>
+acsmdownloader <ACSM_FILE>
 ```
 To export your private key (for use with Calibre, for example) :
 ```
@@ -80,7 +80,7 @@ acsmdownloader --export-private-key [-o adobekey_1.der]
 ```
 To remove ADEPT DRM :
 ```
-adept_remove -f <encryptedFile>
+adept_remove <encrypted_file>
 ```
 To list loaned books :
 ```
@@ -103,35 +103,42 @@ A "de-DRM" bash script is provided (`./scripts/dedrm.sh`) to simplify running an
 To launch an interactive terminal with access to the libgourou utils:
 ```bash
 > dedrm
-!!!
-!!!    WARNING: no ADEPT keys detected (argument $2, or "$(pwd)/.adept").
+!!!    WARNING: no ADEPT keys detected (argument $2, or "/home/brad/.config/adept").
 !!!    Launching interactive terminal for credentials creation (device activation). Run this:
-!!!
-!!!    adept_activate -r --username {USERNAME} --password {PASSWORD} --output-dir files/.adept
-!!!
+
+ > adept_activate --random-serial \
+       --username {USERNAME} \
+       --password {PASSWORD} \
+       --output-dir files/adept
+
 !!!     (*) use --anonymous in place of --username, --password if you do not have an ADE account.
-!!!     (*) credentials will be saved in your current path in the folder "$(pwd)/.adept"
-!!!
-!!!
+!!!     (*) credentials will be saved in the following path: "/home/brad/repos/docker-libgourou/adept"
+
 !!!    WARNING: no ACSM file detected (argument $1).
 !!!    Launching interactive terminal for manual loan management. Example commands below:
-!!!
-!!!    acsmdownloader -f "./files/{ACSM_FILE}" -o output.drm
-!!!    adept_remove -v -f output.drm -o "/home/libgourou/files/{OUTPUT_FILE}"
-!!!
+
+ > acsmdownloader \
+       --adept-directory .adept \
+       --output-file encrypted_file.drm \
+       "files/{ACSM_FILE}"
+ > adept_remove \
+       --adept-directory .adept \
+       --output-dir files \
+       --output-file "{OUTPUT_FILE}" \
+       encrypted_file.drm
 
 Mounted Volumes
    (current path e.g. $pwd) --> /home/libgourou/files/
 
-username@..:/home/libgourou# 
+root@..:/home/libgourou# 
 ```
 
-To generate a DRM-removed PDF/ePub file (this simply replicates the command at the top of this section):
+If you already have ADEPT keys saved (i.e. in `.adept` or `~/.config/adept`), append the encrypted ACSM file path in order to automatically generate a DRM-removed PDF/ePub file (this simply replicates the command at the top of this section):
 ```bash
 > dedrm {ACSM_FILE}
 ```
 
-To generate a DRM-free PDF/ePub file using credentials in a specific directory:
+To generate a DRM-free PDF/ePub file using credentials in a specific path:
 ```bash
 > dedrm {ACSM_FILE} {CREDENTIALS_PATH}
 ```
