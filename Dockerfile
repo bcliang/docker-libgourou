@@ -10,6 +10,7 @@ RUN apt-get update && \
   libzip-dev \
   libssl-dev \
   libcurl4-gnutls-dev \
+  libpugixml-dev \
   && apt-get autoclean \
   && rm -rf /var/lib/apt/lists/*
 
