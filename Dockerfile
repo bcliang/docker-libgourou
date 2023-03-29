@@ -1,39 +1,37 @@
-FROM ubuntu:jammy
+# build apps
+FROM alpine:latest AS builder
 
-RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \
-  apt-get install -y \
-  build-essential \
-  bash \
-  git \
-  wget \
-  libzip-dev \
-  libssl-dev \
-  libcurl4-gnutls-dev \
-  libpugixml-dev \
-  && apt-get autoclean \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk add g++ \
+    pugixml-dev \
+    openssl-dev \
+    curl-dev \
+    libzip-dev \
+    make \
+    bash \
+    git
 
-# RUN apt-get install -y valgrind
+WORKDIR /usr/src
 
-RUN cd /usr/src \
-  && git clone git://soutade.fr/libgourou.git \
+RUN git clone git://soutade.fr/libgourou.git \
   && cd libgourou \
-  && make \
-  && cp /usr/src/libgourou/libgourou.so         /usr/local/lib \
-  && cp /usr/src/libgourou/utils/acsmdownloader /usr/local/bin \
-  && cp /usr/src/libgourou/utils/adept_activate /usr/local/bin \
-  && cp /usr/src/libgourou/utils/adept_remove   /usr/local/bin \
-  && cd ~ \
-  && rm -r /usr/src/libgourou \
-  && ldconfig
-
-RUN apt-get remove -y git build-essential \
-  && apt-get clean
+  && make BUILD_STATIC=1
 
 
-COPY scripts /home/libgourou
+# copy from builder to runtime image
+FROM alpine:latest
+
+RUN apk add --no-cache \
+  libcurl \
+  libzip \
+  pugixml \
+  bash
+
+COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
+                    /usr/src/libgourou/utils/adept_activate \
+                    /usr/src/libgourou/utils/adept_remove \
+                    /usr/local/bin/
 
 WORKDIR /home/libgourou
+COPY scripts .
 
 ENTRYPOINT ["/bin/bash", "/home/libgourou/entrypoint.sh"]
