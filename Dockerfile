@@ -1,10 +1,13 @@
 # build apps
-FROM alpine:latest AS builder
+FROM ubuntu:jammy AS builder
 
-RUN apk add g++ \
-    pugixml-dev \
-    openssl-dev \
-    curl-dev \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \
+    apt-get install -y \
+    g++ \
+    libpugixml-dev \
+    libssl-dev \
+    libcurl4-openssl-dev \
     libzip-dev \
     make \
     bash \
@@ -18,13 +21,15 @@ RUN git clone git://soutade.fr/libgourou.git \
 
 
 # copy from builder to runtime image
-FROM alpine:latest
+FROM ubuntu:jammy
 
-RUN apk add --no-cache \
-  libcurl \
-  libzip \
-  pugixml \
-  bash
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \ 
+    apt-get install -y \
+    libcurl4 \
+    libzip4 \
+    libpugixml1v5 \
+    bash
 
 COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_activate \
