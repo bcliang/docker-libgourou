@@ -29,7 +29,9 @@ RUN apt-get update && \
     libcurl4 \
     libzip4 \
     libpugixml1v5 \
-    bash
+    bash \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_activate \
