@@ -22,7 +22,12 @@ This container compiles the reference implementation utilities for libgourou (ma
 ### Local Build
 
 ```bash
-> docker build . -t bcliang/docker-libgourou
+> docker build . -f Dockerfile-ubuntu -t bcliang/docker-libgourou
+```
+
+or on alpine:
+```bash
+> docker build . -f Dockerfile-alpine -t bcliang/docker-libgourou
 ```
 
 ### DockerHub
@@ -30,6 +35,8 @@ This container compiles the reference implementation utilities for libgourou (ma
 ```bash
 > docker pull bcliang/docker-libgourou:latest
 ```
+
+The `:latest` tag will pull the `:ubuntu` image. Use `:ubuntu` or `:alpine` to specify the desired base image (warning: segmentation faults when running the alpine build in `0.8.4`).
 
 ## Usage
 
@@ -103,7 +110,7 @@ A "de-DRM" bash script is provided (`./scripts/dedrm.sh`) to simplify running an
 To launch an interactive terminal with access to the libgourou utils:
 ```bash
 > dedrm
-!!!    WARNING: no ADEPT keys detected (argument $2, or "/home/brad/.config/adept").
+!!!    WARNING: no ADEPT keys detected (argument $2, or "$HOME_DIR/.config/adept").
 !!!    Launching interactive terminal for credentials creation (device activation). Run this:
 
  > adept_activate --random-serial \
@@ -112,7 +119,7 @@ To launch an interactive terminal with access to the libgourou utils:
        --output-dir files/adept
 
 !!!     (*) use --anonymous in place of --username, --password if you do not have an ADE account.
-!!!     (*) credentials will be saved in the following path: "/home/brad/repos/docker-libgourou/adept"
+!!!     (*) credentials will be saved in the following path: "$(pwd)/adept"
 
 !!!    WARNING: no ACSM file detected (argument $1).
 !!!    Launching interactive terminal for manual loan management. Example commands below:
