@@ -7,7 +7,7 @@ on:
 jobs:
   publish-alpine:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/releases/')
+    # if: startsWith(github.ref, 'refs/tags/releases/')
     steps:
     - uses: actions/checkout@v4
     - name: Docker Login - Docker Hub
@@ -28,7 +28,7 @@ jobs:
     #   run: docker push --all-tags $(cat BE_NAME)
   publish-ubuntu:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/releases/')
+    # if: startsWith(github.ref, 'refs/tags/releases/')
     steps:
     - uses: actions/checkout@v4
     - name: Docker Login - Docker Hub
