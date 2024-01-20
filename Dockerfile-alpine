@@ -16,7 +16,6 @@ RUN git clone git://soutade.fr/libgourou.git \
   && cd libgourou \
   && make BUILD_STATIC=1
 
-
 # copy from builder to runtime image
 FROM alpine:latest
 
@@ -29,6 +28,7 @@ RUN apk add --no-cache \
 COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_activate \
                     /usr/src/libgourou/utils/adept_remove \
+                    /usr/src/libgourou/utils/adept_loan_mgt \
                     /usr/local/bin/
 
 WORKDIR /home/libgourou
