@@ -23,7 +23,7 @@ jobs:
       run: docker build . --file Dockerfile-alpine --tag $(cat BE_NAME):$(cat RELEASE_TAG)
     - name: Tag to release (-alpine)
       run: |
-        docker tag $(cat BE_NAME):$(cat RELEASE_TAG)
+        docker tag $(cat BE_NAME):$(cat RELEASE_TAG) $(cat BE_NAME):alpine
     # - name: Push container to dockerhub
     #   run: docker push --all-tags $(cat BE_NAME)
   publish-ubuntu:
@@ -44,6 +44,8 @@ jobs:
       run: docker build . --file Dockerfile-ubuntu --tag $(cat BE_NAME):$(cat RELEASE_TAG)
     - name: Tag to release (-ubuntu) + latest
       run: |
+        docker tag $(cat BE_NAME):$(cat RELEASE_TAG) $(cat BE_NAME):ubuntu
         docker tag $(cat BE_NAME):$(cat RELEASE_TAG) $(cat BE_NAME):latest
+        
     # - name: Push container to dockerhub
     #   run: docker push --all-tags $(cat BE_NAME)
