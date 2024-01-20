@@ -1,5 +1,6 @@
 name: Build and Publish to DockerHub
 on:
+  push:
   release:
     types: [published]
     
@@ -23,8 +24,8 @@ jobs:
     - name: Tag to release (-alpine)
       run: |
         docker tag $(cat BE_NAME):$(cat RELEASE_TAG)
-    - name: Push container to dockerhub
-      run: docker push --all-tags $(cat BE_NAME)
+    # - name: Push container to dockerhub
+    #   run: docker push --all-tags $(cat BE_NAME)
   publish-ubuntu:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/releases/')
@@ -44,5 +45,5 @@ jobs:
     - name: Tag to release (-ubuntu) + latest
       run: |
         docker tag $(cat BE_NAME):$(cat RELEASE_TAG) $(cat BE_NAME):latest
-    - name: Push container to dockerhub
-      run: docker push --all-tags $(cat BE_NAME)
+    # - name: Push container to dockerhub
+    #   run: docker push --all-tags $(cat BE_NAME)
