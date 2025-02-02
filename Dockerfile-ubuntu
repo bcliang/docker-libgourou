@@ -1,42 +1,47 @@
 FROM ubuntu:jammy AS builder
 
 RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \
-  apt-get install -y \
-  build-essential \
-  bash \
-  git \
-  wget \
-  libzip-dev \
-  libssl-dev \
-  libcurl4-gnutls-dev \
-  libpugixml-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      build-essential \
+      git \
+      wget \
+      devscripts \
+      debhelper-compat \
+      libpugixml-dev \
+      libzip-dev \
+      libssl-dev \
+      libcurl4-gnutls-dev \
+      ca-certificates
 
 WORKDIR /usr/src
-# RUN apt-get install -y valgrind
 
-RUN git clone git://soutade.fr/libgourou.git \
-  && cd libgourou \
-  && make BUILD_STATIC=1 STATIC_UTILS=1
+RUN git clone https://github.com/steinarb/libgourou-debian.git
 
-FROM ubuntu:jammy as release
+WORKDIR /usr/src/libgourou-debian/packaging
 
-COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
-                    /usr/src/libgourou/utils/adept_activate \
-                    /usr/src/libgourou/utils/adept_remove \
-                    /usr/src/libgourou/utils/adept_loan_mgt \
-                    /usr/local/bin/
+RUN dpkg-buildpackage -us -uc -d
+
+FROM ubuntu:jammy AS release
 
 RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \ 
-  && apt-get install -y \
-  libpugixml1v5 \
-  libzip4 \
-  libssl3 \
-  libcurl4-gnutls-dev \
-  && apt-get autoclean \
-  && rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      bash \
+      libpugixml1v5 \
+      libzip4 \
+      libssl3 \
+      libcurl4-gnutls-dev && \
+    apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
-COPY scripts /home/libgourou
+WORKDIR /tmp
+
+COPY --from=builder /usr/src/libgourou-debian/libgourou_*.deb ./
+
+RUN ls -l /tmp
+
+RUN dpkg -i libgourou_*.deb || apt-get -y -f install
+
+COPY scripts/ /home/libgourou/
+
 WORKDIR /home/libgourou
+
 ENTRYPOINT ["/bin/bash", "/home/libgourou/entrypoint.sh"]
