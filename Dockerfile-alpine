@@ -12,7 +12,7 @@ RUN apk add g++ \
 
 WORKDIR /usr/src
 
-RUN git clone git://soutade.fr/libgourou.git \
+RUN git clone https://forge.soutade.fr/soutade/libgourou.git \
   && cd libgourou \
   && make BUILD_STATIC=1
 

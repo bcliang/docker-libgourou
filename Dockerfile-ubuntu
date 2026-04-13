@@ -15,7 +15,7 @@ RUN apt-get update && \
 WORKDIR /usr/src
 # RUN apt-get install -y valgrind
 
-RUN git clone git://soutade.fr/libgourou.git \
+RUN git clone https://forge.soutade.fr/soutade/libgourou.git \
   && cd libgourou \
   && make BUILD_STATIC=1 STATIC_UTILS=1
 
