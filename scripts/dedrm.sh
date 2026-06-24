@@ -7,8 +7,19 @@ IMAGE="bcliang/docker-libgourou"
 
 # Pick a container runtime. Honor $CONTAINER_RUNTIME, else auto-detect the first
 # available docker-compatible CLI. $CONTAINER_RUNTIME accepts any such CLI.
-RUNTIME="${CONTAINER_RUNTIME:docker}"
-
+RUNTIME="${CONTAINER_RUNTIME:-}"
+if [[ -z "$RUNTIME" ]]; then
+    for candidate in docker podman nerdctl; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            RUNTIME=$candidate
+            break
+        fi
+    done
+fi
+if [[ -z "$RUNTIME" ]]; then
+    echo "error: no container runtime found (set \$CONTAINER_RUNTIME or install docker, podman, or nerdctl)" >&2
+    exit 1
+fi
 
 # Docker needs a well-defined path for mounting volumes (paths should start with
 # /* or ./*). Normalize $KEY_PATH to an absolute path, or fall back to the
