@@ -13,6 +13,5 @@ mv "$OUTPUT_FILE" "encrypted_file.drm"
 
 adept_remove \
   --adept-directory .adept \
-  --output-dir files \
-  --output-file "$OUTPUT_FILE" \
+  --output-file files/"$OUTPUT_FILE" \
   "encrypted_file.drm"
