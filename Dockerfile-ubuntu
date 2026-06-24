@@ -1,25 +1,29 @@
+# build apps
 FROM ubuntu:jammy AS builder
 
-RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \
-  apt-get install -y \
-  build-essential \
-  bash \
-  git \
-  wget \
-  libzip-dev \
-  libssl-dev \
-  libcurl4-gnutls-dev \
-  libpugixml-dev
+# branch or tag of libgourou to build (pin for reproducible images)
+ARG LIBGOUROU_REF=master
+
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    git \
+    libzip-dev \
+    libssl-dev \
+    libcurl4-gnutls-dev \
+    libpugixml-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src
-# RUN apt-get install -y valgrind
 
-RUN git clone https://forge.soutade.fr/soutade/libgourou.git \
+RUN git clone --branch "${LIBGOUROU_REF}" --depth 1 \
+    https://forge.soutade.fr/soutade/libgourou.git \
   && cd libgourou \
   && make BUILD_STATIC=1 STATIC_UTILS=1
 
-FROM ubuntu:jammy as release
+# copy from builder to runtime image
+FROM ubuntu:jammy AS release
 
 COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_activate \
@@ -27,14 +31,13 @@ COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_loan_mgt \
                     /usr/local/bin/
 
-RUN apt-get update && \
-  DEBIAN_FRONTEND=noninteractive TZ="America\Los_Angeles" \ 
-  && apt-get install -y \
-  libpugixml1v5 \
-  libzip4 \
-  libssl3 \
-  libcurl4-gnutls-dev \
-  && apt-get autoclean \
+# runtime shared libraries the utils link against (see `ldd`)
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    libpugixml1v5 \
+    libzip4 \
+    libssl3 \
+    libcurl3-gnutls \
   && rm -rf /var/lib/apt/lists/*
 
 COPY scripts /home/libgourou

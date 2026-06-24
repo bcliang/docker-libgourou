@@ -1,29 +1,35 @@
 # build apps
-FROM alpine:latest AS builder
+FROM alpine:3.21 AS builder
 
-RUN apk add g++ \
+# branch or tag of libgourou to build (pin for reproducible images)
+ARG LIBGOUROU_REF=master
+
+RUN apk add --no-cache \
+    g++ \
+    make \
+    git \
+    bash \
+    ca-certificates \
     pugixml-dev \
     openssl-dev \
     curl-dev \
-    libzip-dev \
-    make \
-    bash \
-    git
+    libzip-dev
 
 WORKDIR /usr/src
 
-RUN git clone https://forge.soutade.fr/soutade/libgourou.git \
+RUN git clone --branch "${LIBGOUROU_REF}" --depth 1 \
+    https://forge.soutade.fr/soutade/libgourou.git \
   && cd libgourou \
   && make BUILD_STATIC=1
 
 # copy from builder to runtime image
-FROM alpine:latest
+FROM alpine:3.21
 
 RUN apk add --no-cache \
-  libcurl \
-  libzip \
-  pugixml \
-  bash
+    bash \
+    libcurl \
+    libzip \
+    pugixml
 
 COPY --from=builder /usr/src/libgourou/utils/acsmdownloader \
                     /usr/src/libgourou/utils/adept_activate \
