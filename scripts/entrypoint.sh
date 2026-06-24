@@ -6,7 +6,7 @@ ACSM_PATH=/home/libgourou/files/$ACSM_FILE
 acsmdownloader --version
 echo ""[util] acsmdownloader "$ACSM_PATH"""
 
-OUTPUT_FILE=$(acsmdownloader --adept-directory .adept "$ACSM_PATH" | egrep "epub|pdf" | cut -d " " -f 2-)
+OUTPUT_FILE=$(acsmdownloader --adept-directory .adept "$ACSM_PATH" | grep -E "epub|pdf" | cut -d " " -f 2-)
 echo "      > $OUTPUT_FILE"
 
 mv "$OUTPUT_FILE" "encrypted_file.drm"

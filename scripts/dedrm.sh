@@ -2,52 +2,53 @@
 
 ACSM_FILE=$1
 KEY_PATH=$2
-HOME_DIR="$(getent passwd $USER | awk -F ':' '{print $6}')"
+HOME_DIR="$(getent passwd "$USER" | awk -F ':' '{print $6}')"
+IMAGE="bcliang/docker-libgourou"
 
-# Docker container needs a well-defined path for mounting volumes (paths should start with /* or ./*). 
-# Check $KEY_PATH and attempt to convert relative paths when necessary
-if [[ ! -z "$KEY_PATH" ]] && [[ -d "$KEY_PATH" ]]
-then
-    # user specified a path AND bash found the directory
-    case $KEY_PATH in
-        /*)
-            # absolute path, do nothing
-            ;;
-        ~*)
-            # home directory, convert to absolute path
-            KEY_PATH="$HOME_DIR/${KEY_PATH:1}"
-            ;;
-        *)
-            # relative path, convert
-            KEY_PATH="$(pwd)/$KEY_PATH"
-            ;;
-    esac
-else
-    # user didn't specify a path
-    if [[ -z "$KEY_PATH" ]]
-    then
-        if [[ -d "$HOME_DIR/.config/adept" ]]
-        then
-            # check the script's "default" path
-            KEY_PATH="$HOME_DIR/.config/adept"
-        else
-            echo "!!!    WARNING: no ADEPT keys detected (argument \$2, or \"$HOME_DIR/.config/adept\")."
-            echo "!!!    Launching interactive terminal for credentials creation (device activation). Run this:"
-            echo ""
-            echo " > adept_activate --random-serial \\"
-            echo "       --username {USERNAME} \\"
-            echo "       --password {PASSWORD} \\"
-            echo "       --output-dir files/adept"
-            echo ""
-            echo "!!!     (*) use --anonymous in place of --username, --password if you do not have an ADE account."
-            echo "!!!     (*) credentials will be saved in the following path: \"$(pwd)/adept\""
+# Pick a container runtime. Honor $CONTAINER_RUNTIME, else auto-detect the first
+# available docker-compatible CLI. $CONTAINER_RUNTIME accepts any such CLI.
+RUNTIME="${CONTAINER_RUNTIME:-}"
+if [[ -z "$RUNTIME" ]]; then
+    for candidate in docker podman nerdctl; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            RUNTIME=$candidate
+            break
         fi
+    done
+fi
+if [[ -z "$RUNTIME" ]]; then
+    echo "error: no container runtime found (set \$CONTAINER_RUNTIME or install docker, podman, or nerdctl)" >&2
+    exit 1
+fi
+
+# Docker needs a well-defined path for mounting volumes (paths should start with
+# /* or ./*). Normalize $KEY_PATH to an absolute path, or fall back to the
+# default config location when it is omitted.
+if [[ -n "$KEY_PATH" && -d "$KEY_PATH" ]]; then
+    case $KEY_PATH in
+        /*) ;;                                       # absolute path, leave as-is
+        ~*) KEY_PATH="$HOME_DIR/${KEY_PATH:1}" ;;    # home directory
+        *)  KEY_PATH="$(pwd)/$KEY_PATH" ;;           # relative path
+    esac
+elif [[ -z "$KEY_PATH" ]]; then
+    if [[ -d "$HOME_DIR/.config/adept" ]]; then
+        KEY_PATH="$HOME_DIR/.config/adept"
+    else
+        echo "!!!    WARNING: no ADEPT keys detected (argument \$2, or \"$HOME_DIR/.config/adept\")."
+        echo "!!!    Launching interactive terminal for credentials creation (device activation). Run this:"
+        echo ""
+        echo " > adept_activate --random-serial \\"
+        echo "       --username {USERNAME} \\"
+        echo "       --password {PASSWORD} \\"
+        echo "       --output-dir files/adept"
+        echo ""
+        echo "!!!     (*) use --anonymous in place of --username, --password if you do not have an ADE account."
+        echo "!!!     (*) credentials will be saved in the following path: \"$(pwd)/adept\""
     fi
 fi
 
-# *.acsm file not specified, or specified file doesn't exist
-if [[ -z "$ACSM_FILE" ]] || [[ ! -f "$ACSM_FILE" ]]
-then
+# Warn when no usable *.acsm file was provided.
+if [[ -z "$ACSM_FILE" || ! -f "$ACSM_FILE" ]]; then
     echo ""
     echo "!!!    WARNING: no ACSM file detected (argument \$1)."
     echo "!!!    Launching interactive terminal for manual loan management. Example commands below:"
@@ -63,36 +64,20 @@ then
     echo "       encrypted_file.drm"
 fi
 
-if [[ -z "$KEY_PATH" ]]
-then
-    # ADEPT keys missing; can't run libgourou utils
-    echo -e "\nMounted Volumes"
-    echo -e "   $(pwd) --> /home/libgourou/files/\n"
-    docker run \
-        -v "$(pwd)":/home/libgourou/files \
-        -it --entrypoint /bin/bash \
-        --rm bcliang/docker-libgourou
-else
-    if [[ -z "$ACSM_FILE" ]] || [[ ! -f "$ACSM_FILE" ]]
-    then
-        # ADEPT keys were found but no *.acsm file
-        echo -e "\nMounted Volumes"
-        echo -e "   $(pwd) --> /home/libgourou/files/"
-        echo -e "   $KEY_PATH --> mounted at /home/libgourou/.adept/\n"
-        docker run \
-            -v "$(pwd)":/home/libgourou/files \
-            -v "$KEY_PATH":/home/libgourou/.adept \
-            -it --entrypoint /bin/bash \
-            --rm bcliang/docker-libgourou
-    else
-        # both ADEPT keys and *.acsm file were found
-        echo "> acsmdownloader --adept-directory .adept --output-file encrypted_file.drm \"files/$ACSM_FILE\""
-        echo "> adept_remove --adept-directory .adept --output-dir files --output-file \"{OUTPUT_FILE}\" encrypted_file.drm"
-        docker run \
-            -v "$(pwd)":/home/libgourou/files \
-            -v "$KEY_PATH":/home/libgourou/.adept \
-            --rm bcliang/docker-libgourou \
-            $ACSM_FILE
-    fi
-fi
+# Always mount the working directory; mount the ADEPT keys when available.
+docker_args=(-v "$(pwd)":/home/libgourou/files)
+[[ -n "$KEY_PATH" ]] && docker_args+=(-v "$KEY_PATH":/home/libgourou/.adept)
 
+if [[ -n "$KEY_PATH" && -n "$ACSM_FILE" && -f "$ACSM_FILE" ]]; then
+    # ADEPT keys and a valid *.acsm file: run the automated download + de-DRM
+    echo "> acsmdownloader --adept-directory .adept --output-file encrypted_file.drm \"files/$ACSM_FILE\""
+    echo "> adept_remove --adept-directory .adept --output-dir files --output-file \"{OUTPUT_FILE}\" encrypted_file.drm"
+    "$RUNTIME" run "${docker_args[@]}" --rm "$IMAGE" "$ACSM_FILE"
+else
+    # missing keys or *.acsm file: drop into an interactive shell
+    echo -e "\nMounted Volumes"
+    echo -e "   $(pwd) --> /home/libgourou/files/"
+    [[ -n "$KEY_PATH" ]] && echo -e "   $KEY_PATH --> /home/libgourou/.adept/"
+    echo ""
+    "$RUNTIME" run "${docker_args[@]}" -it --entrypoint /bin/bash --rm "$IMAGE"
+fi

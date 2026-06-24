@@ -30,6 +30,11 @@ or on alpine:
 > docker build . -f Dockerfile-alpine -t bcliang/docker-libgourou
 ```
 
+By default, both Dockerfiles build libgourou's `master` branch. To build a different branch or tag, set the `LIBGOUROU_REF` build argument:
+```bash
+> docker build . -f Dockerfile-ubuntu --build-arg LIBGOUROU_REF=master -t bcliang/docker-libgourou
+```
+
 ### DockerHub
 
 ```bash
@@ -106,6 +111,8 @@ A "de-DRM" bash script is provided (`./scripts/dedrm.sh`) to simplify running an
 > chmod +x scripts/dedrm.sh
 > cp scripts/dedrm.sh ~/.local/bin/dedrm
 ```
+
+The script auto-detects a container runtime, trying `docker`, `podman`, then `nerdctl`. Set `CONTAINER_RUNTIME` to force a specific one; any docker-compatible CLI works.
 
 To launch an interactive terminal with access to the libgourou utils:
 ```bash
